@@ -4,12 +4,6 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 
-def toTensor(x, dtype):
-    if not isinstance(x, torch.Tensor):
-        x = torch.tensor(x, dtype=dtype)
-    return x
-
-
 class HIN2vec(nn.Module):
 
     def __init__(self, node_size, path_size, embed_dim, r=True):
@@ -43,6 +37,11 @@ class HIN2vec(nn.Module):
         output = self.classifier(agg)
 
         return output
+
+    def output_embeddings(self, s_file_name, e_file_name, path_file_name):
+        np.savetxt(s_file_name, self.start_embeds.weight.data.numpy())
+        np.savetxt(e_file_name, self.end_embeds.weight.data.numpy())
+        np.savetxt(path_file_name, self.path_embeds.weight.data.numpy())
 
 
 def train(log_interval, model, device, train_loader: DataLoader, optimizer, loss_function, epoch):
@@ -99,36 +98,43 @@ if __name__ == '__main__':
     import pandas as pd
     import torch.optim as optim
 
-    from utils import load_a_HIN_from_pandas, thFilter
+    from walker import load_a_HIN_from_pandas
 
-    # device = 'cpu'
+    # set parameters
+    window = 4
+    walk_length = 300
+    embed_size = 100
+    neg = 5
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'device = {device}')
 
-    edgeDiDr = pd.read_csv('G:/_projects/Lab/edge/edgeDiDr.csv', index_col=0)
-    edgeDiSim = pd.read_csv('G:/_projects/Lab/edge/edgeDiSim.csv', index_col=0)
-    edgeDrSim = pd.read_csv('G:/_projects/Lab/edge/edgeDrSim.csv', index_col=0)
+    # set dataset [PLEASE USE YOUR OWN DATASET TO REPLACE THIS]
+    demo_edge = pd.read_csv('./demo_data.csv', index_col=0)
 
-    edgeDiSim_filtered = thFilter(edgeDiSim, th=0.7)
-    edgeDrSim_filtered = thFilter(edgeDrSim, th=0.8)
+    edges = [demo_edge]
 
     print('finish loading edges')
 
-    hin = load_a_HIN_from_pandas([edgeDiDr, edgeDiSim_filtered, edgeDrSim_filtered])
-    hin.window = 4
+    # init HIN
+    hin = load_a_HIN_from_pandas(edges)
+    hin.window = window
 
-    dataset = NSTrainSet(hin.sample(300), hin.path_size, neg=5)
+    dataset = NSTrainSet(hin.sample(walk_length), hin.path_size, neg=neg)
 
-    hin2vec = HIN2vec(hin.node_size, hin.path_size, 100)
+    hin2vec = HIN2vec(hin.node_size, hin.path_size, embed_size)
 
-    data_loader = DataLoader(dataset, batch_size=5, shuffle=True)
-    optimizer = optim.Adam(hin2vec.parameters())  # 原作者使用的是SGD？
-    loss_function = nn.BCELoss()
-
-    n_epoch = 5
+    # set parameters
+    n_epoch = 10
+    batch_size = 20
     log_interval = 200
+
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    optimizer = optim.Adam(hin2vec.parameters())  # 原作者使用的是SGD？ 这里使用Adam
+    loss_function = nn.BCELoss()
 
     for epoch in range(n_epoch):
         train(log_interval, hin2vec, device, data_loader, optimizer, loss_function, epoch)
 
     torch.save(hin2vec, 'hin2vec.pt')
+
+    hin2vec.output_embeddings('start_node_embed.txt', 'end_node_embed.txt', 'path_embed.txt')

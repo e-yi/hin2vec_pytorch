@@ -1,6 +1,7 @@
-from itertools import product
 import random
+import pandas as pd
 import networkx as nx
+from itertools import product
 from collections import defaultdict
 
 
@@ -104,6 +105,38 @@ class HIN:
         print(f'size = {self.node_size}')
 
 
+def load_a_HIN_from_pandas(edges, print_graph=False):
+    """
+    单向边：edges = list(pd.df)
+    """
+
+    def reverse(df):
+        """
+        reverse source & dest
+        """
+        df = df.rename({'source_node': 'dest_node', 'dest_node': 'source_node',
+                        'source_class': 'dest_class', 'dest_class': 'source_class'},
+                       axis=1)
+        # reverse edge_class
+        df.edge_class = df.edge_class.map(lambda x: '-'.join(reversed(x.split('-'))))
+        return df
+
+    print('load graph from edges...')
+    g = HIN()
+    if isinstance(edges, list):
+        edges = pd.concat(edges, sort=False)
+    edges = edges.append(reverse(edges), sort=False, ignore_index=True)
+
+    for index, row in edges.iterrows():
+        g.add_edge(row['source_node'], row['source_class'],
+                   row['dest_node'], row['dest_class'], row['edge_class'],
+                   row['weight'])
+    if print_graph:
+        g.print_statistics()
+    print('finish loading graph!')
+    return g
+
+
 if __name__ == '__main__':
     hin = HIN()
     hin.window = 4
@@ -131,4 +164,3 @@ if __name__ == '__main__':
 
     print(hin.graph.edges)
 
-    # print(list(format_data(hin.sample(3), hin.path_size)))
