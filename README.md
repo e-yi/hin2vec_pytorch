@@ -5,6 +5,12 @@ A pytorch implementation of [HIN2vec](https://github.com/csiesheep/hin2vec)
 >*HIN2Vec* learns distributed representations of nodes in heterogeneous information networks (HINs) by capturing the distiguishing metapath relationships between nodes. 
 Please refer the paper [here](https://dl.acm.org/citation.cfm?doid=3132847.3132953).
 
+### Requirements
+- python3.6+ 
+- pytorch
+- numpy
+- pandas
+- networkx
 
 ### Usage
 create your own edge.csv referring to `demo_data.csv`
