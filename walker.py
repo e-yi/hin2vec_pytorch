@@ -1,5 +1,5 @@
-import random
 from itertools import product
+import random
 import networkx as nx
 from collections import defaultdict
 
@@ -13,19 +13,19 @@ class HIN:
         print("Model initialization started.")
         self.graph = nx.DiGraph()
         self.node_size = 0
-        self.path_size = 0
+        self._path_size = 0
 
         def new_id():
             i = self.node_size
             self.node_size += 1
             return i
 
-        self.node2id = defaultdict(new_id)
-        self.id2type = {}
+        self._node2id = defaultdict(new_id)
+        self._id2type = {}
         self._window = window
-        self.node_types = set()
-        self.path2id = None
-        self.id2node = None
+        self._node_types = set()
+        self._path2id = None
+        self._id2node = None
 
     @property
     def window(self):
@@ -38,13 +38,19 @@ class HIN:
         else:
             raise ValueError("window只能被设定一次")
 
+    @property
+    def path_size(self):
+        if not self._path_size:
+            raise ValueError("run sample() first to count path size")
+        return self._path_size
+
     def add_edge(self, source_node, source_class, dest_node, dest_class, edge_class, weight):
-        i = self.node2id[source_node]
-        j = self.node2id[dest_node]
-        self.id2type[i] = source_class
-        self.id2type[j] = dest_class
-        self.node_types.add(source_class)
-        self.node_types.add(dest_class)
+        i = self._node2id[source_node]
+        j = self._node2id[dest_node]
+        self._id2type[i] = source_class
+        self._id2type[j] = dest_class
+        self._node_types.add(source_class)
+        self._node_types.add(dest_class)
         self.graph.add_edge(i, j, weight=weight)
 
     def small_walk(self, start_node, length):
@@ -68,16 +74,16 @@ class HIN:
         if not self.window:
             raise ValueError("window not set")
 
-        if not self.path2id:
-            self.path2id = {}
+        if not self._path2id:
+            self._path2id = {}
             path_id = 0
             for w in range(1, self._window + 1):
-                for i in product(self.node_types, repeat=w + 1):
-                    self.path2id[i] = path_id
+                for i in product(self._node_types, repeat=w + 1):
+                    self._path2id[i] = path_id
                     path_id += 1
 
-            self.path_size = len(self.path2id)
-            self.id2node = {v: k for k, v in self.node2id.items()}
+            self._path_size = len(self._path2id)
+            self._id2node = {v: k for k, v in self._node2id.items()}
 
         samples = []
 
@@ -88,7 +94,7 @@ class HIN:
                 if cur_len >= 2:
                     for path_length in range(1, cur_len):
                         sample = (walk[i - path_length], walk[i],
-                                  self.path2id[tuple([self.id2type[t] for t in walk[i - path_length:i + 1]])])
+                                  self._path2id[tuple([self._id2type[t] for t in walk[i - path_length:i + 1]])])
                         # print(tuple([self.id2type[t] for t in walk[i-path_length:i + 1]]))
                         samples.append(sample)
 
@@ -97,19 +103,6 @@ class HIN:
     def print_statistics(self):
         print(f'size = {self.node_size}')
 
-def format_data(sample, path_size, neg=5):
-    """
-    完全随机的负采样 todo 改进一下
-    :param path_size: 元路径总数
-    :param neg: 负采样数目
-    :param sample: HIN.sample()返回值，(start_node, end_node, path_id)
-    :return: data_entry ((start_node, end_node, path_id), true or false) true -> 1 false -> 0
-    """
-    for start_node, end_node, path_id in sample:
-        yield (start_node, end_node, path_id), 1
-
-        for i in range(neg):
-            yield (start_node, end_node, random.randint(0, path_size-1)), 0
 
 if __name__ == '__main__':
     hin = HIN()
@@ -131,11 +124,11 @@ if __name__ == '__main__':
     hin.add_edge('E', 'Dr', 'F', 'Di', None, 0.3)
     hin.add_edge('F', 'Di', 'A', 'Dr', None, 0.3)
 
-    print(hin.small_walk(hin.node2id['A'], 4))
+    print(hin.small_walk(hin._node2id['A'], 4))
     print(hin.sample(3))
     print(hin.node_size)
-    print(hin.path_size)
+    print(hin._path_size)
 
     print(hin.graph.edges)
 
-    print(list(format_data(hin.sample(3), hin.path_size)))
+    # print(list(format_data(hin.sample(3), hin.path_size)))
