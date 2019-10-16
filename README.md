@@ -7,7 +7,7 @@ Please refer the paper [here](https://dl.acm.org/citation.cfm?doid=3132847.31329
 
 
 ### Usage
-create your own edge.csv refer to `demo_data.csv`
+create your own edge.csv referring to `demo_data.csv`
 
 create a main.py in the project folder, copy the following code and modify it.
 ```python
