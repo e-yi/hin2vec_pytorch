@@ -1,4 +1,5 @@
 import random
+
 import pandas as pd
 import networkx as nx
 from itertools import product
@@ -26,7 +27,16 @@ class HIN:
         self._window = window
         self._node_types = set()
         self._path2id = None
+        self._id2path = None
         self._id2node = None
+
+    @property
+    def id2node(self):
+        return self._id2node
+
+    @property
+    def id2path(self):
+        return self._id2path
 
     @property
     def window(self):
@@ -66,10 +76,11 @@ class HIN:
         for start_node in range(self.node_size):
             yield self.small_walk(start_node, length)
 
-    def sample(self, length):
+    def sample(self, length, n_repeat):
         """
-        从随机游走的结果中截取结果返回，每个节点轮流作为起始节点一次
+        从随机游走的结果中截取结果返回，每个节点轮流作为起始节点
         :param length: 游走长度
+        :param n_repeat: 游走次数
         :return: （start_id,end_id,edge_type)
         """
         if not self.window:
@@ -85,19 +96,21 @@ class HIN:
 
             self._path_size = len(self._path2id)
             self._id2node = {v: k for k, v in self._node2id.items()}
+            self._id2path = {v: k for k, v in self._path2id.items()}
 
         samples = []
 
-        for walk in self.do_walks(length):
-            cur_len = 0
-            for i, node_id in enumerate(walk):
-                cur_len = min(cur_len + 1, self._window + 1)  # 当window=n的时候，最长路径有n+1个节点
-                if cur_len >= 2:
-                    for path_length in range(1, cur_len):
-                        sample = (walk[i - path_length], walk[i],
-                                  self._path2id[tuple([self._id2type[t] for t in walk[i - path_length:i + 1]])])
-                        # print(tuple([self.id2type[t] for t in walk[i-path_length:i + 1]]))
-                        samples.append(sample)
+        for repeat in range(n_repeat):
+            for walk in self.do_walks(length):
+                cur_len = 0
+                for i, node_id in enumerate(walk):
+                    cur_len = min(cur_len + 1, self._window + 1)  # 当window=n的时候，最长路径有n+1个节点
+                    if cur_len >= 2:
+                        for path_length in range(1, cur_len):
+                            sample = (walk[i - path_length], walk[i],
+                                      self._path2id[tuple([self._id2type[t] for t in walk[i - path_length:i + 1]])])
+                            # print(tuple([self.id2type[t] for t in walk[i-path_length:i + 1]]))
+                            samples.append(sample)
 
         return samples
 

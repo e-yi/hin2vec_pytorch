@@ -6,10 +6,15 @@ from torch.utils.data import Dataset, DataLoader
 
 class HIN2vec(nn.Module):
 
-    def __init__(self, node_size, path_size, embed_dim, r=True):
+    def __init__(self, node_size, path_size, embed_dim, sigmoid_reg=False, r=True):
         super().__init__()
 
         # self.args = args
+
+        def binary_reg(x: torch.Tensor):
+            return (x >= 0).float()
+
+        self.reg = torch.sigmoid if sigmoid_reg else binary_reg
 
         self.__initialize_model(node_size, path_size, embed_dim, r)
 
@@ -29,7 +34,7 @@ class HIN2vec(nn.Module):
         s = self.start_embeds(start_node)  # (batch_size, embed_size)
         e = self.end_embeds(end_node)
         p = self.path_embeds(path)
-        p = torch.sigmoid(p)
+        p = self.reg(p)
 
         agg = torch.mul(s, e)
         agg = torch.mul(agg, p)
@@ -102,9 +107,11 @@ if __name__ == '__main__':
 
     # set parameters
     window = 4
+    walk = 10
     walk_length = 300
     embed_size = 100
     neg = 5
+    sigmoid_reg = False
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'device = {device}')
 
@@ -119,9 +126,9 @@ if __name__ == '__main__':
     hin = load_a_HIN_from_pandas(edges)
     hin.window = window
 
-    dataset = NSTrainSet(hin.sample(walk_length), hin.path_size, neg=neg)
+    dataset = NSTrainSet(hin.sample(walk_length, walk), hin.path_size, neg=neg)
 
-    hin2vec = HIN2vec(hin.node_size, hin.path_size, embed_size)
+    hin2vec = HIN2vec(hin.node_size, hin.path_size, embed_size, sigmoid_reg)
 
     # set parameters
     n_epoch = 10
