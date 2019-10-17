@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     from walker import load_a_HIN_from_pandas
 
-    # set parameters
+    # set method parameters
     window = 4
     walk = 10
     walk_length = 300
@@ -130,7 +130,10 @@ if __name__ == '__main__':
 
     hin2vec = HIN2vec(hin.node_size, hin.path_size, embed_size, sigmoid_reg)
 
-    # set parameters
+    # load model
+    # hin2vec.load_state_dict(torch.load('hin2vec.pt'))
+
+    # set training parameters
     n_epoch = 10
     batch_size = 20
     log_interval = 200
@@ -142,6 +145,19 @@ if __name__ == '__main__':
     for epoch in range(n_epoch):
         train(log_interval, hin2vec, device, data_loader, optimizer, loss_function, epoch)
 
-    torch.save(hin2vec, 'hin2vec.pt')
+    # set output file
+    node_vec_fname = 'node_vec.txt'
+    # path_vec_fname = 'meta_path_vec.txt'
+    path_vec_fname = None
 
-    hin2vec.output_embeddings('start_node_embed.txt', 'end_node_embed.txt', 'path_embed.txt')
+    print(f'saving node embedding vectors to {node_vec_fname}...')
+    node_embeds = pd.DataFrame(hin2vec.start_embeds.weight.data.numpy())
+    node_embeds.rename(hin.id2node).to_csv(node_vec_fname, sep=' ')
+
+    if path_vec_fname:
+        print(f'saving meta path embedding vectors to {path_vec_fname}...')
+        path_embeds = pd.DataFrame(hin2vec.path_embeds.weight.data.numpy())
+        path_embeds.rename(hin.id2path).to_csv(path_vec_fname, sep=' ')
+
+    # save model
+    # torch.save(hin2vec.state_dict(), 'hin2vec.pt')
