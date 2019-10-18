@@ -23,10 +23,10 @@ class HIN2vec(nn.Module):
         self.end_embeds = self.start_embeds if r else nn.Embedding(node_size, embed_dim)
 
         self.path_embeds = nn.Embedding(path_size, embed_dim)
-        self.classifier = nn.Sequential(
-            nn.Linear(embed_dim, 1),
-            nn.Sigmoid(),
-        )
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(embed_dim, 1),
+        #     nn.Sigmoid(),
+        # )
 
     def forward(self, start_node: torch.LongTensor, end_node: torch.LongTensor, path: torch.LongTensor):
         # assert start_node.dim() == 1  # shape = (batch_size,)
@@ -39,14 +39,12 @@ class HIN2vec(nn.Module):
         agg = torch.mul(s, e)
         agg = torch.mul(agg, p)
         # agg = F.sigmoid(agg)
-        output = self.classifier(agg)
+        # output = self.classifier(agg)
+
+        output = torch.sigmoid(torch.sum(agg, axis=1))
 
         return output
 
-    def output_embeddings(self, s_file_name, e_file_name, path_file_name):
-        np.savetxt(s_file_name, self.start_embeds.weight.data.numpy())
-        np.savetxt(e_file_name, self.end_embeds.weight.data.numpy())
-        np.savetxt(path_file_name, self.path_embeds.weight.data.numpy())
 
 
 def train(log_interval, model, device, train_loader: DataLoader, optimizer, loss_function, epoch):
