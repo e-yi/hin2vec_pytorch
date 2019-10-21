@@ -12,7 +12,8 @@ class HIN2vec(nn.Module):
         # self.args = args
 
         def binary_reg(x: torch.Tensor):
-            return (x >= 0).float()
+            raise NotImplementedError()
+            # return (x >= 0).float()  # do not have gradients
 
         self.reg = torch.sigmoid if sigmoid_reg else binary_reg
 
@@ -78,17 +79,22 @@ class NSTrainSet(Dataset):
         :param sample: HIN.sample()返回值，(start_node, end_node, path_id)
         """
 
+        print('init training dataset...')
+
         l = len(sample)
 
         x = np.tile(sample, (neg + 1, 1))
         y = np.zeros(l * (1 + neg))
         y[:l] = 1
 
-        x[l:, 2] = np.random.randint(0, path_size - 1, (l * neg,))
+        # x[l:, 2] = np.random.randint(0, path_size - 1, (l * neg,))
+        x[l:, 1] = np.random.randint(0, path_size - 1, (l * neg,))
 
         self.x = torch.LongTensor(x)
         self.y = torch.FloatTensor(y)
         self.length = len(x)
+
+        print('finished')
 
     def __getitem__(self, index):
         return self.x[index], self.y[index]
