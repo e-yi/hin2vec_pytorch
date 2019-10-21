@@ -12,7 +12,6 @@ class HIN:
     """
 
     def __init__(self, window=None):
-        print("Model initialization started.")
         self.graph = nx.DiGraph()
         self.node_size = 0
         self._path_size = 0
@@ -69,7 +68,13 @@ class HIN:
         for i in range(1, length):
             if next(nx.neighbors(self.graph, walk[-1]), None) is None:
                 break
-            walk += random.sample(list(nx.neighbors(self.graph, walk[-1])), 1)  # todo 添加按权重游走的采样方式
+            cur_node = walk[-1]
+            nodes = list(nx.neighbors(self.graph, cur_node))
+            weights = [self.graph[cur_node][i]['weight'] for i in nodes]  # 有向图可能不能这么做
+            s = sum(weights)
+            weights = [i/s for i in weights]
+            walk += random.choices(nodes, weights, k=1)
+            # walk += random.sample(list(nx.neighbors(self.graph, cur_node)), 1)  # todo 添加按权重游走的采样方式
         return walk
 
     def do_walks(self, length):
