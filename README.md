@@ -30,7 +30,7 @@ Maybe the sampling approach will be added later, but the binary regulation is a 
 Maybe there is something wrong about my parameter setting, but when I do some experiments using the original code,
 the program won't continue with `window` set to more than 4. This pytorch code works fine.
 
-- this implementation is slower and would yield less good result with the same setting.
+- this implementation is slower (It takes about 10 times of the time)
 
 But is surly more easier to understand and modify. (And I would try to use a bigger window size to get comparable or 
 better results.)
