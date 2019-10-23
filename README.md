@@ -12,6 +12,29 @@ Please refer the paper [here](https://dl.acm.org/citation.cfm?doid=3132847.31329
 - pandas
 - networkx
 
+### Some differences with the original implementation
+
+- use Adam instead of SGD to optimize weights
+
+I find Adam much more effective in training.
+
+- some tricks not implemented
+  - sampling the same type of nodes
+  - binary regulation for meta path vectors
+  - learning rate decay
+
+Maybe the sampling approach will be added later, but the binary regulation is a bit tricky.
+
+- may be more robust comparing to the original implementation
+
+Maybe there is something wrong about my parameter setting, but when I do some experiments using the original code,
+the program won't continue with `window` set to more than 4. This pytorch code works fine.
+
+- this implementation is slower and would yield less good result with the same setting.
+
+But is surly more easier to understand and modify. (And I would try to use a bigger window size to get comparable or 
+better results.)
+
 ### Usage
 create your own edge.csv referring to `demo_data.csv`
 
@@ -50,7 +73,7 @@ create a main.py in the project folder, copy the following code and modify it.
     hin = load_a_HIN_from_pandas(edges)
     hin.window = window
 
-    dataset = NSTrainSet(hin.sample(walk_length, walk), hin.path_size, neg=neg)
+    dataset = NSTrainSet(hin.sample(walk_length, walk), hin.node_size, neg=neg)
 
     hin2vec = HIN2vec(hin.node_size, hin.path_size, embed_size, sigmoid_reg)
 
@@ -63,7 +86,7 @@ create a main.py in the project folder, copy the following code and modify it.
     log_interval = 200
 
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    optimizer = optim.Adam(hin2vec.parameters())  # 原作者使用的是SGD？ 这里使用Adam
+    optimizer = optim.AdamW(hin2vec.parameters())  # 原作者使用的是SGD？ 这里使用AdamW
     loss_function = nn.BCELoss()
 
     for epoch in range(n_epoch):
