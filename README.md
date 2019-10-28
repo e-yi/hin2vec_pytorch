@@ -23,7 +23,7 @@ I find Adam much more effective in training.
   - binary regulation for meta path vectors
   - learning rate decay
 
-Maybe the sampling approach will be added later, but the binary regulation is a bit tricky.
+Maybe the sampling approach will be added later, but the binary regularization is a bit tricky.
 
 - may be more robust comparing to the original implementation
 
