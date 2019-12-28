@@ -58,7 +58,7 @@ create a main.py in the project folder, copy the following code and modify it.
     walk_length = 300
     embed_size = 100
     neg = 5
-    sigmoid_reg = False
+    sigmoid_reg = True 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'device = {device}')
 
