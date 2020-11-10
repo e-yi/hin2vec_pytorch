@@ -2,8 +2,12 @@
 A pytorch implementation of [HIN2vec](https://github.com/csiesheep/hin2vec)
 
 
+
+
 >*HIN2Vec* learns distributed representations of nodes in heterogeneous information networks (HINs) by capturing the distiguishing metapath relationships between nodes. 
 Please refer the paper [here](https://dl.acm.org/citation.cfm?doid=3132847.3132953).
+
+Please find more details in [the original repo](https://github.com/csiesheep/hin2vec)
 
 ### Requirements
 - python3.6+ 
@@ -112,4 +116,6 @@ create a main.py in the project folder, copy the following code and modify it.
     # torch.save(hin2vec.state_dict(), 'hin2vec.pt')
 ```
 
-Some more details could be found in [the original repo](https://github.com/csiesheep/hin2vec)
+### About `data_demo.csv`
+In this repository, the Heterogeneous Information Network is considered as an undirected weighted simple graph with multiple node types and multiple edge types. And each edge type is presented as "<node_type_A>-<node_type_B>" (e.g. "User-Item"), so there is at most one type of edges for each pair of node types. Besides, isolated nodes are not preferable and the only way to add a node into the graph is to add an edge with this node on one side.
+
