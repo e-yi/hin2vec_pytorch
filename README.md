@@ -3,6 +3,11 @@ A pytorch implementation of [HIN2vec](https://github.com/csiesheep/hin2vec)
 
 
 
+---
+
+07/13/2021 add binary activation function 
+
+---
 
 >*HIN2Vec* learns distributed representations of nodes in heterogeneous information networks (HINs) by capturing the distiguishing metapath relationships between nodes. 
 Please refer the paper [here](https://dl.acm.org/citation.cfm?doid=3132847.3132953).
@@ -24,10 +29,7 @@ I find Adam much more effective in training.
 
 - some tricks not implemented
   - sampling the same type of nodes
-  - binary regulation for meta path vectors
   - learning rate decay
-
-Maybe the sampling approach will be added later, but the binary regularization is a bit tricky.
 
 - may be more robust comparing to the original implementation
 
