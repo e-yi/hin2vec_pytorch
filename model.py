@@ -3,17 +3,18 @@ import numpy as np
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
+def binary_reg(x: torch.Tensor):
+    # forward: f(x) = (x>=0)
+    # backward: f(x) = sigmoid
+    a = torch.sigmoid(x)
+    b = a.detach()
+    c = (x.detach() >= 0).float()
+    return a - b + c
 
 class HIN2vec(nn.Module):
 
     def __init__(self, node_size, path_size, embed_dim, sigmoid_reg=False, r=True):
         super().__init__()
-
-        # self.args = args
-
-        def binary_reg(x: torch.Tensor):
-            raise NotImplementedError()
-            # return (x >= 0).float()  # do not have gradients
 
         self.reg = torch.sigmoid if sigmoid_reg else binary_reg
 
@@ -45,7 +46,6 @@ class HIN2vec(nn.Module):
         output = torch.sigmoid(torch.sum(agg, axis=1))
 
         return output
-
 
 
 def train(log_interval, model, device, train_loader: DataLoader, optimizer, loss_function, epoch):
@@ -102,3 +102,29 @@ class NSTrainSet(Dataset):
     def __len__(self):
         return self.length
 
+if __name__ == '__main__':
+    ## test binary_reg
+
+    print('sigmoid')
+    a = torch.tensor([-1.,0.,1.],requires_grad=True)
+    b = torch.sigmoid(a)
+    c = b.sum()
+    print(a)
+    print(b)
+    print(c)
+    c.backward()
+    print(c.grad)
+    print(b.grad)
+    print(a.grad)
+
+    print('binary')
+    a = torch.tensor([-1., 0., 1.], requires_grad=True)
+    b = binary_reg(a)
+    c = b.sum()
+    print(a)
+    print(b)
+    print(c)
+    c.backward()
+    print(c.grad)
+    print(b.grad)
+    print(a.grad)
